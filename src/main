@@ -1,0 +1,223 @@
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_image.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_primitives.h>
+#include "constants.h"
+#include "fundo.hpp"
+#include "tubo.hpp"
+#include "jogador.hpp"
+
+
+enum EstadoDoJogo {PRONTO, JOGANDO, FIM_DE_JOGO};
+
+
+int main() {
+    bool reiniciar = false; // reiniciar se apertar R; ta fora e antes dos controles de jogo pra reiniciar tudo
+
+    do { //o do-while pra reiniciar tudo
+        
+    reiniciar = false;
+
+
+        srand(time(0));
+        al_init();
+        al_install_keyboard();
+        al_init_image_addon();
+        al_init_font_addon();
+        al_init_ttf_addon();
+        al_init_primitives_addon();
+
+
+        ALLEGRO_DISPLAY* tela = al_create_display(LARGURA_TELA, ALTURA_TELA); // cria a janela
+        ALLEGRO_EVENT_QUEUE* fila_eventos = al_create_event_queue(); // teclado e timer (eventos)
+        ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60);
+        ALLEGRO_FONT* fonte = al_load_ttf_font("font.ttf", 32, 0);
+
+
+        Fundo fundo;
+        carregar_imagens_tubo();
+        Jogador jogador;
+
+
+        const int NUM_TUBOS = 3;
+        Tubo tubos[NUM_TUBOS] = { Tubo(LARGURA_TELA), Tubo(LARGURA_TELA + 350), Tubo(LARGURA_TELA + 700) };
+        tubos[0].altura_abertura = ALTURA_TELA / 2;
+
+
+        al_register_event_source(fila_eventos, al_get_display_event_source(tela));
+        al_register_event_source(fila_eventos, al_get_timer_event_source(timer));
+        al_register_event_source(fila_eventos, al_get_keyboard_event_source());
+
+        
+        //controles do jogo
+
+        bool sair = false;
+        bool tecla_espaco_pressionada = false;
+        EstadoDoJogo estado_atual = PRONTO;
+        
+        al_start_timer(timer);
+
+
+        while (!sair) {
+            ALLEGRO_EVENT evento;
+            al_wait_for_event(fila_eventos, &evento);
+
+
+            if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+                sair = true; // sai do loop quando fecha a janela
+                reiniciar = false;
+
+            }
+
+              else if (evento.type == ALLEGRO_EVENT_KEY_DOWN) {
+                  if (evento.keyboard.keycode == ALLEGRO_KEY_SPACE) {
+                      if (estado_atual == PRONTO || estado_atual == JOGANDO) { tecla_espaco_pressionada = true; }
+
+                }
+
+              else if (evento.keyboard.keycode == ALLEGRO_KEY_R) {
+                  if (estado_atual == FIM_DE_JOGO) { reiniciar = true; sair = true; }
+
+                }
+
+            }
+
+               else if (evento.type == ALLEGRO_EVENT_TIMER) {
+
+                
+                int hitbox_largura = 36;
+                int hitbox_altura = 26;
+                int hitbox_offset_x = 8;
+                int hitbox_offset_y = 6;
+
+
+                if (estado_atual == PRONTO) {
+                    fundo.atualizar();
+
+                    if (tecla_espaco_pressionada) {
+                        estado_atual = JOGANDO;
+                        jogador.pular();
+
+                    }
+
+                }
+
+                  else if(estado_atual == JOGANDO) {
+                     if (tecla_espaco_pressionada) {
+                        jogador.pular();
+
+                    }
+
+                    
+
+                    fundo.atualizar();
+                    jogador.atualizar();
+
+
+                    for (int i = 0; i < NUM_TUBOS; ++i) {
+
+                        tubos[i].atualizar();
+
+                        if (tubos[i].colide(jogador.x + hitbox_offset_x, jogador.y + hitbox_offset_y, hitbox_largura, hitbox_altura)) {
+
+                            estado_atual = FIM_DE_JOGO;
+
+                        }
+
+                    }
+
+
+                    if (jogador.y >= ALTURA_TELA - 38 || jogador.y < 0) {
+
+                        estado_atual = FIM_DE_JOGO;
+
+                    }
+
+                }
+
+                
+
+                tecla_espaco_pressionada = false;
+                al_clear_to_color(al_map_rgb(0, 0, 0));
+                fundo.desenhar();
+
+                
+
+                for (int i = 0; i < NUM_TUBOS; ++i) {
+
+                    tubos[i].desenhar();
+
+                }
+
+
+                jogador.desenhar();
+
+
+                if (estado_atual == PRONTO) {
+                    al_draw_text(fonte, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 2 - 50, ALLEGRO_ALIGN_CENTER, "Pressione espaço para começar!");
+
+                }
+
+                  else if (estado_atual == FIM_DE_JOGO) {
+                    al_draw_text(fonte, al_map_rgb(255, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 2 - 20, ALLEGRO_ALIGN_CENTER, "GAME OVER");
+                    al_draw_text(fonte, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 2 + 20, ALLEGRO_ALIGN_CENTER, "Pressione R para reiniciar");
+
+                }
+
+
+
+           //Desenha o hitbox do passaro pra debug
+                if (estado_atual != FIM_DE_JOGO) {
+                    al_draw_rectangle(
+                        jogador.x + hitbox_offset_x,
+                        jogador.y + hitbox_offset_y,
+                        jogador.x + hitbox_offset_x + hitbox_largura,
+                        jogador.y + hitbox_offset_y + hitbox_altura,
+                        al_map_rgb(255, 0, 0), 1
+
+                    );
+
+
+                    // Desenha os hitboxes dos tubos
+                    for (int i = 0; i < NUM_TUBOS; ++i) {
+                        if(Tubo::imagem_cima && Tubo::imagem_baixo) {
+                            int altura_real_cano_cima = al_get_bitmap_height(Tubo::imagem_cima);
+                            int altura_real_cano_baixo = al_get_bitmap_height(Tubo::imagem_baixo);
+                            int largura_real_cano = al_get_bitmap_width(Tubo::imagem_cima);
+
+                            al_draw_rectangle(tubos[i].x, tubos[i].altura_abertura - altura_real_cano_cima, tubos[i].x + largura_real_cano, tubos[i].altura_abertura, al_map_rgb(0, 255, 0), 1);
+
+                            al_draw_rectangle(tubos[i].x, tubos[i].altura_abertura + ESPACO_ENTRE_TUBOS, tubos[i].x + largura_real_cano, tubos[i].altura_abertura + ESPACO_ENTRE_TUBOS + altura_real_cano_baixo, al_map_rgb(0, 255, 0), 1);
+
+                        }
+
+                    }
+
+                }
+
+                
+
+                al_flip_display();
+
+            }
+
+        }
+
+
+        destruir_imagens_tubo();
+        al_destroy_font(fonte);
+        al_destroy_timer(timer);
+        al_destroy_event_queue(fila_eventos);
+        al_destroy_display(tela);
+
+
+    } while (reiniciar);
+
+
+    return 0;
+
+} 
