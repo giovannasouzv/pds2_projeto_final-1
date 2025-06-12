@@ -13,5 +13,4 @@ const int ALTURA_TUBO = 600;
 const int VELOCIDADE_TUBO = 2;
 
 const int VELOCIDADE_FUNDO = 2;
-
 #endif
