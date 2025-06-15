@@ -4,7 +4,7 @@
 #include <allegro5/allegro_image.h>
 
 Fundo::Fundo() {
-    imagem = al_load_bitmap("output/fundoori2.png");
+    imagem = al_load_bitmap("assets/fundoori2.png");
     posicao_x = 0;
 }
 
