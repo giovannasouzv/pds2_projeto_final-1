@@ -32,7 +32,7 @@ int main() {
     ALLEGRO_DISPLAY* tela = al_create_display(LARGURA_TELA, ALTURA_TELA); // cria a janela
     ALLEGRO_EVENT_QUEUE* fila_eventos = al_create_event_queue(); // teclado e timer (eventos)
     ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60);
-    ALLEGRO_FONT* fonte = al_load_ttf_font("font.ttf", 32, 0);
+    ALLEGRO_FONT* fonte = al_load_ttf_font("assets/font.ttf", 32, 0);
 
     Fundo fundo;
     carregar_imagens_tubo();
