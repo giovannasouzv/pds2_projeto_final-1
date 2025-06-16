@@ -9,7 +9,7 @@ const int FORCA_PULO = -12;
 
 const int ESPACO_ENTRE_TUBOS = 200;
 const int LARGURA_TUBO = 110;
-const int ALTURA_TUBO = 600;
+const int ALTURA_TUBO = 580;
 const int VELOCIDADE_TUBO = 2;
 
 const int VELOCIDADE_FUNDO = 2;
