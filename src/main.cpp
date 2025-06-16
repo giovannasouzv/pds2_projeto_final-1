@@ -38,12 +38,15 @@ int main() {
     ALLEGRO_EVENT_QUEUE* fila_eventos = al_create_event_queue(); // teclado e timer (eventos)
     ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60);
     ALLEGRO_FONT* fonte = al_load_ttf_font("assets/font.ttf", 32, 0);
+<<<<<<< HEAD
     ALLEGRO_SAMPLE *musica_tema = al_load_sample("assets/musicatema.ogg");
     ALLEGRO_SAMPLE_INSTANCE *inst_musica_tema = nullptr;
     inst_musica_tema = al_create_sample_instance(musica_tema);
     al_attach_sample_instance_to_mixer(inst_musica_tema, al_get_default_mixer());
     al_set_sample_instance_playmode(inst_musica_tema, ALLEGRO_PLAYMODE_LOOP);
     al_set_sample_instance_gain(inst_musica_tema, 0.8);
+=======
+>>>>>>> 8e82d1603d9dab44f2f51ea5cadb7d5745a76154
 
     Fundo fundo;
     carregar_imagens_tubo();
