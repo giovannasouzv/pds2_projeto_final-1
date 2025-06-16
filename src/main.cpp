@@ -7,6 +7,8 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #include "constants.h"
 #include "fundo.hpp"
@@ -28,11 +30,20 @@ int main() {
     al_init_font_addon();
     al_init_ttf_addon();
     al_init_primitives_addon();
+    al_install_audio();
+    al_init_acodec_addon();
+    al_reserve_samples(1);
 
     ALLEGRO_DISPLAY* tela = al_create_display(LARGURA_TELA, ALTURA_TELA); // cria a janela
     ALLEGRO_EVENT_QUEUE* fila_eventos = al_create_event_queue(); // teclado e timer (eventos)
     ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60);
-    ALLEGRO_FONT* fonte = al_load_ttf_font("font.ttf", 32, 0);
+    ALLEGRO_FONT* fonte = al_load_ttf_font("assets/font.ttf", 32, 0);
+    ALLEGRO_SAMPLE *musica_tema = al_load_sample("assets/musicatema.ogg");
+    ALLEGRO_SAMPLE_INSTANCE *inst_musica_tema = nullptr;
+    inst_musica_tema = al_create_sample_instance(musica_tema);
+    al_attach_sample_instance_to_mixer(inst_musica_tema, al_get_default_mixer());
+    al_set_sample_instance_playmode(inst_musica_tema, ALLEGRO_PLAYMODE_LOOP);
+    al_set_sample_instance_gain(inst_musica_tema, 0.8);
 
     Fundo fundo;
     carregar_imagens_tubo();
@@ -81,6 +92,7 @@ int main() {
             }
             if (!perdeu) { //  faz congelar a tela ao perder ( se perdeu = verdadeiro --> não entrará no loop de atualização)
                 
+                al_play_sample_instance(inst_musica_tema);
                 fundo.atualizar();
                 jogador.atualizar();
                 
@@ -95,6 +107,10 @@ int main() {
                     if (jogador.y > ALTURA_TELA || jogador.y < 0) {
                         perdeu = true; // verifica se saiu da tela
                         }
+                    }
+
+                    else { 
+                        al_stop_sample_instance(inst_musica_tema);
                     }
 
             al_clear_to_color(al_map_rgb(0, 0, 0));
